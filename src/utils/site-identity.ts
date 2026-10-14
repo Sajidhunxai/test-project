@@ -12,13 +12,30 @@ export interface BlogSiteIdentitySettings {
 	favicon?: MediaReference;
 }
 
-const DEFAULT_SITE_TITLE = "My Blog";
-const DEFAULT_SITE_TAGLINE = "Thoughts, stories, and ideas.";
+const DEFAULT_SITE_TITLE = "Fake Store";
+const DEFAULT_SITE_TAGLINE =
+	"A live shop powered by Fake Store API, with a journal beside it.";
+
+/** EmDash blog seed defaults we should replace for this store. */
+const LEGACY_TITLES = new Set(["My Blog", "Blog"]);
+const LEGACY_TAGLINES = new Set([
+	"Thoughts, stories, and ideas.",
+	"Thoughts on building for the web",
+]);
 
 export function resolveBlogSiteIdentity(settings?: BlogSiteIdentitySettings) {
+	const rawTitle = settings?.title?.trim() || "";
+	const rawTagline = settings?.tagline?.trim() || "";
+
 	return {
-		siteTitle: settings?.title ?? DEFAULT_SITE_TITLE,
-		siteTagline: settings?.tagline ?? DEFAULT_SITE_TAGLINE,
+		siteTitle:
+			!rawTitle || LEGACY_TITLES.has(rawTitle)
+				? DEFAULT_SITE_TITLE
+				: rawTitle,
+		siteTagline:
+			!rawTagline || LEGACY_TAGLINES.has(rawTagline)
+				? DEFAULT_SITE_TAGLINE
+				: rawTagline,
 		siteLogo: settings?.logo?.url ? settings.logo : null,
 	};
 }

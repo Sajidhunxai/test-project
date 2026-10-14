@@ -17,15 +17,10 @@ const [{ entries: posts, cacheHint }, settings, products] = await Promise.all([
 
 if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
 
-const { siteTitle, siteTagline } = resolveBlogSiteIdentity(settings);
-const brand =
-	!siteTitle || siteTitle === "My Blog" ? "Fake Store" : siteTitle;
-const tagline =
-	!siteTagline || siteTagline === "Thoughts on building for the web"
-		? "A live shop powered by Fake Store API, with a journal beside it."
-		: siteTagline;
+const { siteTitle: brand, siteTagline: tagline } =
+	resolveBlogSiteIdentity(settings);
 
-const landingProducts = products.slice(0, 6).map((product) => ({
+const landingProducts = products.slice(0, 8).map((product) => ({
 	id: product.id,
 	title: product.title,
 	price: product.price,

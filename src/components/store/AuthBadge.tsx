@@ -27,7 +27,7 @@ export default function AuthBadge() {
 
 	return (
 		<span className="auth-badge auth-badge--user">
-			<span>{username}</span>
+			{/* <span>{username}</span> */}
 			<button type="button" onClick={() => clearSession()}>
 				Sign out
 			</button>
