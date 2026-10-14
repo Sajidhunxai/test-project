@@ -16,8 +16,8 @@ export default function CartBadge() {
 	}, []);
 
 	return (
-		<a href="/store/cart" className="cart-badge">
-			Cart
+		<a href="/store/cart" className="cart-badge" aria-label={`Cart${count > 0 ? `, ${count} items` : ""}`}>
+			<span className="cart-badge-label">Cart</span>
 			{count > 0 && <span className="cart-badge-count">{count}</span>}
 		</a>
 	);

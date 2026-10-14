@@ -81,8 +81,23 @@ const pageCtx = createPublicPageContext({
 	siteName: siteTitle,
 });
 
-// Check if user is logged in (for showing admin link)
-const isLoggedIn = !!Astro.locals.user;
+const normalizeNavUrl = (url: string) => {
+	const path = url.split("?")[0]?.split("#")[0] ?? url;
+	if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+	return path || "/";
+};
+
+const aboutFromMenu = menu?.items?.find(
+	(item) =>
+		item.label.toLowerCase() === "about" ||
+		normalizeNavUrl(item.url) === "/about",
+);
+
+const primaryNav = [
+	{ label: "Home", url: "/" },
+	{ label: "Store", url: "/store" },
+	{ label: "About", url: aboutFromMenu?.url ?? "/about" },
+];
 ---
 
 <!doctype html>
@@ -92,8 +107,6 @@ const isLoggedIn = !!Astro.locals.user;
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<Font cssVariable="--font-body" preload />
 		<Font cssVariable="--font-mono" />
-		<Font cssVariable="--font-landing-display" preload />
-		<Font cssVariable="--font-landing-body" preload />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
 		<script is:inline>
@@ -113,7 +126,7 @@ const isLoggedIn = !!Astro.locals.user;
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 		<header class="site-header">
-			<nav class="nav">
+			<nav class="nav" aria-label="Primary">
 				<a href="/" class="site-title">
 					{
 						siteLogo ? (
@@ -127,116 +140,222 @@ const isLoggedIn = !!Astro.locals.user;
 						)
 					}
 				</a>
-				<div class="nav-right">
-					<LiveSearch
-						placeholder="Search..."
-						class="site-search"
-						inputClass="site-search-input"
-						resultsClass="site-search-results"
-						resultClass="site-search-result"
-						collections={["posts", "pages"]}
-					/>
+
+				<div class="nav-cluster">
+					<div class="site-search-wrap">
+						<LiveSearch
+							placeholder="Search..."
+							class="site-search"
+							inputClass="site-search-input"
+							resultsClass="site-search-results"
+							resultClass="site-search-result"
+							collections={["posts", "pages"]}
+						/>
+					</div>
 					<div class="nav-links">
-					
 						{
-							menu?.items.map((item) => (
-								<a
-									href={item.url}
-									target={item.target}
-									rel={
-										item.target === "_blank" ? "noopener noreferrer" : undefined
-									}
-								>
-									{item.label}
-								</a>
+							primaryNav.map((item) => (
+								<a href={item.url}>{item.label}</a>
 							))
 						}
-							<AuthBadge client:load />
-							<CartBadge client:load />
-					</div>
-					<div class="theme-switcher theme-switcher--nav" role="group" aria-label="Color theme">
-						<button
-							type="button"
-							class="theme-btn"
-							data-theme="light"
-							aria-label="Light mode"
-						>
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								><circle cx="12" cy="12" r="5"></circle><line
-									x1="12"
-									y1="1"
-									x2="12"
-									y2="3"></line><line x1="12" y1="21" x2="12" y2="23"
-								></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"
-								></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"
-								></line><line x1="1" y1="12" x2="3" y2="12"></line><line
-									x1="21"
-									y1="12"
-									x2="23"
-									y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"
-								></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"
-								></line></svg
-							>
-						</button>
-						<button
-							type="button"
-							class="theme-btn"
-							data-theme="dark"
-							aria-label="Dark mode"
-						>
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-								></path></svg
-							>
-						</button>
-						<button
-							type="button"
-							class="theme-btn"
-							data-theme="system"
-							aria-label="System theme"
-						>
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								><rect x="2" y="3" width="20" height="14" rx="2" ry="2"
-								></rect><line x1="8" y1="21" x2="16" y2="21"></line><line
-									x1="12"
-									y1="17"
-									x2="12"
-									y2="21"></line></svg
-							>
-						</button>
+						<AuthBadge client:load />
 					</div>
 				</div>
-				{
-					isLoggedIn && (
-						<a href="/_emdash/admin" class="nav-admin">
-							Admin
-						</a>
-					)
-				}
+
+				<div class="nav-toolbar">
+					<div class="nav-toolbar-extra">
+						<div
+							class="theme-switcher theme-switcher--nav"
+							role="group"
+							aria-label="Color theme"
+						>
+							<button
+								type="button"
+								class="theme-btn"
+								data-theme="light"
+								aria-label="Light mode"
+							>
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									><circle cx="12" cy="12" r="5"></circle><line
+										x1="12"
+										y1="1"
+										x2="12"
+										y2="3"></line><line x1="12" y1="21" x2="12" y2="23"
+									></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"
+									></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"
+									></line><line x1="1" y1="12" x2="3" y2="12"></line><line
+										x1="21"
+										y1="12"
+										x2="23"
+										y2="12"></line><line
+										x1="4.22"
+										y1="19.78"
+										x2="5.64"
+										y2="18.36"></line><line
+										x1="18.36"
+										y1="5.64"
+										x2="19.78"
+										y2="4.22"></line></svg
+								>
+							</button>
+							<button
+								type="button"
+								class="theme-btn"
+								data-theme="dark"
+								aria-label="Dark mode"
+							>
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									><path
+										d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+									></path></svg
+								>
+							</button>
+							<button
+								type="button"
+								class="theme-btn"
+								data-theme="system"
+								aria-label="System theme"
+							>
+								<svg
+									width="16"
+									height="16"
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									><rect x="2" y="3" width="20" height="14" rx="2" ry="2"
+									></rect><line x1="8" y1="21" x2="16" y2="21"></line><line
+										x1="12"
+										y1="17"
+										x2="12"
+										y2="21"></line></svg
+								>
+							</button>
+						</div>
+					</div>
+
+					<CartBadge client:load />
+
+					<details class="nav-menu">
+						<summary class="nav-menu-toggle" aria-label="Open menu" aria-controls="nav-menu-panel">
+							<span class="nav-menu-icon" aria-hidden="true"></span>
+						</summary>
+						<div class="nav-menu-panel" id="nav-menu-panel">
+							{
+								primaryNav.map((item) => (
+									<a href={item.url}>{item.label}</a>
+								))
+							}
+							<div class="nav-menu-auth">
+								<AuthBadge client:load />
+							</div>
+							<div
+								class="theme-switcher theme-switcher--menu"
+								role="group"
+								aria-label="Color theme"
+							>
+								<button
+									type="button"
+									class="theme-btn"
+									data-theme="light"
+									aria-label="Light mode"
+								>
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										><circle cx="12" cy="12" r="5"></circle><line
+											x1="12"
+											y1="1"
+											x2="12"
+											y2="3"></line><line x1="12" y1="21" x2="12" y2="23"
+										></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"
+										></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"
+										></line><line x1="1" y1="12" x2="3" y2="12"></line><line
+											x1="21"
+											y1="12"
+											x2="23"
+											y2="12"></line><line
+											x1="4.22"
+											y1="19.78"
+											x2="5.64"
+											y2="18.36"></line><line
+											x1="18.36"
+											y1="5.64"
+											x2="19.78"
+											y2="4.22"></line></svg
+									>
+								</button>
+								<button
+									type="button"
+									class="theme-btn"
+									data-theme="dark"
+									aria-label="Dark mode"
+								>
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										><path
+											d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+										></path></svg
+									>
+								</button>
+								<button
+									type="button"
+									class="theme-btn"
+									data-theme="system"
+									aria-label="System theme"
+								>
+									<svg
+										width="16"
+										height="16"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										><rect x="2" y="3" width="20" height="14" rx="2" ry="2"
+										></rect><line x1="8" y1="21" x2="16" y2="21"></line><line
+											x1="12"
+											y1="17"
+											x2="12"
+											y2="21"></line></svg
+									>
+								</button>
+							</div>
+						</div>
+					</details>
+				</div>
 			</nav>
 		</header>
 
@@ -261,42 +380,48 @@ const isLoggedIn = !!Astro.locals.user;
 								)
 							}
 						</a>
-						<p class="footer-tagline">{siteTagline}</p>
+						{
+							siteTagline && (
+								<p class="footer-tagline">{siteTagline}</p>
+							)
+						}
 					</div>
-					<div class="footer-nav">
-						<h2 class="footer-heading">Navigate</h2>
-						<ul class="footer-links">
-							<li><a href="/store">Store</a></li>
-							<li><a href="/posts">Blog</a></li>
-							<li><a href="/store/cart">Cart</a></li>
-							<li><a href="/store/checkout">Checkout</a></li>
-							{
-								menu?.items.map((item) => (
-									<li>
-										<a
-											href={item.url}
-											target={item.target}
-											rel={
-												item.target === "_blank"
-													? "noopener noreferrer"
-													: undefined
-											}
-										>
-											{item.label}
-										</a>
-									</li>
-								))
-							}
-						</ul>
-					</div>
-					<div class="footer-nav">
-						<h2 class="footer-heading">Connect</h2>
-						<ul class="footer-links">
-							<li><a href="/rss.xml">RSS Feed</a></li>
-						</ul>
-					</div>
-					<div class="footer-widgets-section">
-						<WidgetArea name="footer" />
+					<div class="footer-cols">
+						<div class="footer-nav">
+							<h2 class="footer-heading">Navigate</h2>
+							<ul class="footer-links">
+								<li><a href="/store">Store</a></li>
+								<li><a href="/posts">Blog</a></li>
+								<li><a href="/store/cart">Cart</a></li>
+								<li><a href="/store/checkout">Checkout</a></li>
+								{
+									menu?.items.map((item) => (
+										<li>
+											<a
+												href={item.url}
+												target={item.target}
+												rel={
+													item.target === "_blank"
+														? "noopener noreferrer"
+														: undefined
+												}
+											>
+												{item.label}
+											</a>
+										</li>
+									))
+								}
+							</ul>
+						</div>
+						<div class="footer-nav">
+							<h2 class="footer-heading">Connect</h2>
+							<ul class="footer-links">
+								<li><a href="/rss.xml">RSS Feed</a></li>
+							</ul>
+						</div>
+						<div class="footer-widgets-section">
+							<WidgetArea name="footer" />
+						</div>
 					</div>
 				</div>
 				<div class="footer-bottom">
@@ -496,10 +621,12 @@ const isLoggedIn = !!Astro.locals.user;
 
 				html {
 					scroll-behavior: smooth;
+					overflow-x: clip;
 				}
 
 				body {
 					font-family: var(--font-body);
+					overflow-x: clip;
 					font-size: var(--font-size-base);
 					line-height: var(--leading-relaxed);
 					color: var(--color-text);
@@ -510,7 +637,7 @@ const isLoggedIn = !!Astro.locals.user;
 				}
 
 				a:where(:not([class*="emdash"]):not([class*="ec-"])) {
-					color: var(--color-brand);
+					color: var(--color-text);
 					text-decoration: none;
 					transition: color var(--transition-fast);
 				}
@@ -562,8 +689,8 @@ const isLoggedIn = !!Astro.locals.user;
 
 			.nav {
 				display: flex;
-				justify-content: space-between;
 				align-items: center;
+				gap: var(--spacing-6);
 				max-width: var(--wide-width);
 				margin: 0 auto;
 				padding: var(--spacing-4) var(--spacing-6);
@@ -571,11 +698,16 @@ const isLoggedIn = !!Astro.locals.user;
 			}
 
 			.site-title {
+				flex: 0 1 auto;
+				min-width: 0;
 				font-size: var(--font-size-lg);
 				font-weight: 600;
 				color: var(--color-text);
 				text-decoration: none;
 				letter-spacing: var(--tracking-snug);
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 
 			.site-title:hover {
@@ -589,49 +721,156 @@ const isLoggedIn = !!Astro.locals.user;
 				margin: -8px 0;
 			}
 
-			.nav-right {
+			.nav-cluster {
 				display: flex;
 				align-items: center;
-				gap: var(--spacing-6);
+				gap: var(--spacing-5);
+				flex: 1 1 auto;
+				min-width: 0;
 				margin-inline-start: auto;
+				justify-content: flex-end;
+			}
+
+			.nav-toolbar {
+				display: flex;
+				align-items: center;
+				gap: var(--spacing-4);
+				flex-shrink: 0;
+			}
+
+			.nav-toolbar-extra {
+				display: flex;
+				align-items: center;
+				gap: var(--spacing-4);
 			}
 
 			.nav-links {
 				display: flex;
+				align-items: center;
 				gap: var(--spacing-5);
+				flex-shrink: 0;
 				font-size: var(--font-size-sm);
 			}
 
-			.nav-links a {
+			.nav-links a,
+			.nav-menu-panel a {
 				text-decoration: none;
 				color: var(--color-text);
 				transition: color var(--transition-fast);
 			}
 
-			.nav-links a:hover {
+			.nav-links a:hover,
+			.nav-menu-panel a:hover {
 				color: var(--color-brand);
 			}
 
-			.nav-admin {
-				font-size: var(--font-size-sm);
-				color: var(--color-text-secondary);
-				text-decoration: none;
-				transition: color var(--transition-fast);
+			.nav-menu {
+				display: none;
+				position: relative;
 			}
 
-			.nav-admin:hover {
-				color: var(--color-text);
+			.theme-switcher--menu {
+				display: none;
+			}
+
+			.nav-menu-toggle {
+				list-style: none;
+				display: grid;
+				place-items: center;
+				width: 40px;
+				height: 40px;
+				border: 1px solid var(--color-border);
+				border-radius: var(--radius);
+				background: var(--color-bg);
+				cursor: pointer;
+			}
+
+			.nav-menu-toggle::-webkit-details-marker {
+				display: none;
+			}
+
+			.nav-menu-icon,
+			.nav-menu-icon::before,
+			.nav-menu-icon::after {
+				display: block;
+				width: 16px;
+				height: 2px;
+				background: var(--color-text);
+				border-radius: 1px;
+				transition:
+					transform 0.2s ease,
+					opacity 0.2s ease,
+					top 0.2s ease;
+			}
+
+			.nav-menu-icon {
+				position: relative;
+			}
+
+			.nav-menu-icon::before,
+			.nav-menu-icon::after {
+				content: "";
+				position: absolute;
+				left: 0;
+			}
+
+			.nav-menu-icon::before {
+				top: -5px;
+			}
+
+			.nav-menu-icon::after {
+				top: 5px;
+			}
+
+			.nav-menu-panel {
+				display: grid;
+				gap: 0.25rem;
+				position: absolute;
+				top: calc(100% + 0.5rem);
+				right: 0;
+				min-width: 11rem;
+				padding: 0.5rem;
+				background: var(--color-bg);
+				border: 1px solid var(--color-border);
+				border-radius: var(--radius);
+				box-shadow: var(--shadow-md, 0 8px 24px rgb(0 0 0 / 12%));
+				z-index: 120;
+			}
+
+			.nav-menu-panel a {
+				display: block;
+				padding: 0.625rem 0.75rem;
+				font-size: var(--font-size-sm);
+				border-radius: calc(var(--radius) - 2px);
+			}
+
+			.nav-menu-panel a:hover {
+				background: var(--color-bg-subtle);
+			}
+
+			.nav-menu-auth {
+				padding: 0.5rem 0.75rem;
+				border-top: 1px solid var(--color-border-subtle);
+				margin-top: 0.25rem;
 			}
 
 			/* Search styling */
-			.site-search {
+			.site-search-wrap {
+				flex: 0 1 14rem;
+				width: 14rem;
+				max-width: 16rem;
+				min-width: 10rem;
+			}
+
+			.site-search-wrap :global(.site-search) {
 				position: relative;
-				width: var(--search-input-width);
+				display: block;
+				width: 100%;
 				--emdash-search-border-focus: var(--color-brand);
 			}
 
-			:global(.site-search-input) {
-				width: var(--search-input-width);
+			.site-search-wrap :global(.site-search-input) {
+				width: 100%;
 				padding: var(--spacing-2) var(--spacing-3);
 				font-family: var(--font-body);
 				font-size: var(--font-size-sm);
@@ -644,18 +883,18 @@ const isLoggedIn = !!Astro.locals.user;
 					box-shadow var(--transition-fast);
 			}
 
-			:global(.site-search-input)::placeholder {
+			.site-search-wrap :global(.site-search-input)::placeholder {
 				color: var(--color-muted);
 			}
 
-			:global(.site-search-input):focus,
-			:global(.site-search-input):focus-visible {
+			.site-search-wrap :global(.site-search-input):focus,
+			.site-search-wrap :global(.site-search-input):focus-visible {
 				outline: none;
 				border-color: var(--color-brand) !important;
 				box-shadow: 0 0 0 3px var(--color-brand-ring);
 			}
 
-			:global(.site-search-results) {
+			.site-search-wrap :global(.site-search-results) {
 				position: absolute;
 				top: 100%;
 				left: 0;
@@ -744,9 +983,16 @@ const isLoggedIn = !!Astro.locals.user;
 
 			.footer-grid {
 				display: grid;
-				grid-template-columns: 2fr 1fr 1fr 1fr;
+				grid-template-columns: minmax(0, 1.4fr) minmax(0, 2fr);
 				gap: var(--spacing-12);
-				margin-bottom: var(--spacing-12);
+				margin-bottom: var(--spacing-10);
+				align-items: start;
+			}
+
+			.footer-cols {
+				display: grid;
+				grid-template-columns: repeat(3, minmax(0, 1fr));
+				gap: var(--spacing-8);
 			}
 
 			.footer-brand {
@@ -767,7 +1013,7 @@ const isLoggedIn = !!Astro.locals.user;
 			}
 
 			.footer-tagline {
-				margin-top: var(--spacing-3);
+				margin: var(--spacing-3) 0 0;
 				font-size: var(--font-size-sm);
 				color: var(--color-muted);
 				line-height: var(--leading-relaxed);
@@ -783,15 +1029,19 @@ const isLoggedIn = !!Astro.locals.user;
 				text-transform: uppercase;
 				letter-spacing: var(--tracking-wider);
 				color: var(--color-muted);
-				margin-bottom: var(--spacing-4);
+				margin: 0 0 var(--spacing-4);
 			}
 
 			.footer-links {
 				list-style: none;
+				margin: 0;
+				padding: 0;
+				display: grid;
+				gap: var(--spacing-2);
 			}
 
 			.footer-links li {
-				margin-bottom: var(--spacing-2);
+				margin: 0;
 			}
 
 			.footer-links a {
@@ -803,6 +1053,11 @@ const isLoggedIn = !!Astro.locals.user;
 
 			.footer-links a:hover {
 				color: var(--color-text);
+			}
+
+			.footer-widgets-section:empty,
+			.footer-widgets-section:not(:has(*)) {
+				display: none;
 			}
 
 			.footer-widgets-section :global(.widget-area) {
@@ -832,11 +1087,13 @@ const isLoggedIn = !!Astro.locals.user;
 				display: flex;
 				justify-content: space-between;
 				align-items: center;
+				gap: var(--spacing-4);
 				padding-top: var(--spacing-6);
 				border-top: 1px solid var(--color-border);
 			}
 
 			.footer-copyright {
+				margin: 0;
 				font-size: var(--font-size-sm);
 				color: var(--color-muted);
 			}
@@ -890,29 +1147,31 @@ const isLoggedIn = !!Astro.locals.user;
 
 			@media (max-width: 900px) {
 				.footer-grid {
-					grid-template-columns: 1fr 1fr;
+					grid-template-columns: 1fr;
 					gap: var(--spacing-8);
+					margin-bottom: var(--spacing-8);
 				}
 
 				.footer-brand {
-					grid-column: span 2;
 					max-width: none;
 				}
-			}
 
-			@media (max-width: 640px) {
-				.site-header {
-					position: relative;
-					border-bottom: none;
+				.footer-cols {
+					grid-template-columns: repeat(2, minmax(0, 1fr));
+					gap: var(--spacing-6) var(--spacing-4);
+				}
+
+				.footer-widgets-section {
+					grid-column: 1 / -1;
 				}
 
 				.nav {
 					display: grid;
 					grid-template-columns: minmax(0, 1fr) auto;
 					align-items: center;
-					height: auto;
 					column-gap: var(--spacing-3);
-					row-gap: var(--spacing-2);
+					row-gap: var(--spacing-3);
+					height: auto;
 					padding: var(--spacing-3) var(--spacing-4);
 				}
 
@@ -920,63 +1179,246 @@ const isLoggedIn = !!Astro.locals.user;
 					grid-column: 1;
 					grid-row: 1;
 					font-size: var(--font-size-base);
-					min-width: 0;
-				}
-
-				.nav-right {
-					grid-column: 1 / -1;
-					grid-row: 2;
-					display: grid;
-					row-gap: var(--spacing-2);
-				}
-
-				.site-search {
-					grid-column: 1;
-					width: 100%;
 					max-width: none;
 				}
 
-				:global(.site-search-input) {
-					width: 100% !important;
-					padding: var(--spacing-1) var(--spacing-2) !important;
-					font-size: var(--font-size-sm) !important;
+				.nav-toolbar {
+					grid-column: 2;
+					grid-row: 1;
+					margin-inline-start: 0;
+					gap: var(--spacing-2);
+				}
+
+				.nav-toolbar-extra {
+					display: none;
+				}
+
+				.nav-cluster {
+					grid-column: 1 / -1;
+					grid-row: 2;
+					margin-inline-start: 0;
+					justify-content: stretch;
+				}
+
+				.site-search-wrap {
+					width: 100%;
+					max-width: none;
+					flex: 1 1 auto;
+					min-width: 0;
 				}
 
 				.nav-links {
-					grid-column: 1;
-					display: flex;
-					column-gap: var(--spacing-3);
-					row-gap: var(--spacing-1);
-					flex-wrap: wrap;
-					justify-content: flex-start;
+					display: none;
 				}
 
-				.nav-admin {
-					grid-column: 2;
-					grid-row: 1;
-					justify-self: end;
-					font-size: var(--font-size-xs);
-					margin-inline-start: 0;
-					white-space: nowrap;
+				.nav-menu {
+					display: block;
+				}
+
+				/* backdrop-filter on header traps position:fixed — disable while open */
+				.site-header:has(.nav-menu[open]) {
+					position: fixed;
+					inset: 0;
+					z-index: 300;
+					height: 100dvh;
+					max-height: 100dvh;
+					background: var(--color-bg);
+					backdrop-filter: none;
+					-webkit-backdrop-filter: none;
+					border-bottom: none;
+					overflow: hidden;
+				}
+
+				.site-header:has(.nav-menu[open]) .nav {
+					height: 100%;
+					max-width: none;
+					padding: 0;
+					display: block;
+				}
+
+				.site-header:has(.nav-menu[open]) .site-title,
+				.site-header:has(.nav-menu[open]) .nav-cluster,
+				.site-header:has(.nav-menu[open]) .nav-toolbar > :not(.nav-menu) {
+					display: none;
+				}
+
+				.site-header:has(.nav-menu[open]) .nav-toolbar {
+					display: contents;
+				}
+
+				.nav-menu[open] {
+					position: absolute;
+					inset: 0;
+					z-index: 1;
+					display: flex;
+					flex-direction: column;
+					width: 100%;
+					height: 100%;
+					background: var(--color-bg);
+					animation: nav-menu-in 0.2s ease;
+				}
+
+				@keyframes nav-menu-in {
+					from {
+						transform: translateY(0.75rem);
+					}
+					to {
+						transform: none;
+					}
+				}
+
+				.nav-menu[open] .nav-menu-toggle {
+					position: absolute;
+					top: max(0.75rem, env(safe-area-inset-top));
+					right: max(1rem, env(safe-area-inset-right));
+					z-index: 2;
+					background: var(--color-surface);
+				}
+
+				.nav-menu[open] .nav-menu-icon {
+					background: transparent;
+				}
+
+				.nav-menu[open] .nav-menu-icon::before {
+					top: 0;
+					transform: rotate(45deg);
+				}
+
+				.nav-menu[open] .nav-menu-icon::after {
+					top: 0;
+					transform: rotate(-45deg);
+				}
+
+				.nav-menu[open] .nav-menu-panel {
+					--nav-menu-link-size: clamp(1.5rem, 6vw, 1.875rem);
+					position: static;
+					flex: 1;
+					display: flex;
+					flex-direction: column;
+					align-items: center;
+					justify-content: center;
+					gap: 0;
+					width: 100%;
+					min-width: 0;
+					max-width: 22rem;
+					margin: 0 auto;
+					padding: 5rem var(--spacing-6) var(--spacing-10);
+					border: none;
+					border-radius: 0;
+					box-shadow: none;
+					background: var(--color-bg);
+					overflow-y: auto;
+					text-align: center;
+				}
+
+				.nav-menu[open] .nav-menu-panel > a,
+				.nav-menu[open] .nav-menu-auth {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					width: 100%;
+					margin: 0;
+					padding: 1rem 0.5rem;
+					border: none;
+					border-bottom: 1px solid var(--color-border-subtle);
+					border-radius: 0;
+					font-size: var(--nav-menu-link-size);
+					font-weight: var(--font-weight-heading, 600);
+					letter-spacing: var(--tracking-snug);
+					line-height: 1.2;
+					text-decoration: none;
+					color: var(--color-text);
+				}
+
+				.nav-menu[open] .nav-menu-panel > a:hover,
+				.nav-menu[open] .nav-menu-auth :global(.auth-badge):hover,
+				.nav-menu[open] .nav-menu-auth :global(.auth-badge--user button):hover {
+					background: transparent;
+					color: var(--color-brand);
+				}
+
+				.nav-menu[open] .nav-menu-auth :global(.auth-badge),
+				.nav-menu[open] .nav-menu-auth :global(.auth-badge--user),
+				.nav-menu[open] .nav-menu-auth :global(.auth-badge--user button) {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					width: 100%;
+					margin: 0;
+					padding: 0;
+					border: none;
+					font-size: inherit;
+					font-weight: inherit;
+					letter-spacing: inherit;
+					line-height: inherit;
+					text-decoration: none;
+					color: inherit;
+					background: transparent;
+					cursor: pointer;
+				}
+
+				.theme-switcher--menu {
+					display: flex;
+					width: fit-content;
+					margin: 1.75rem auto 0;
+					justify-content: center;
+					border: 1px solid var(--color-border);
+				}
+
+				.nav-toolbar :global(.cart-badge) {
+					font-size: var(--font-size-sm);
+				}
+
+				body:has(.nav-menu[open]) {
+					overflow: hidden;
+				}
+			}
+
+			@media (max-width: 640px) {
+				.site-header {
+					position: sticky;
+				}
+
+				.footer-inner {
+					padding: var(--spacing-8) var(--spacing-4) var(--spacing-5);
 				}
 
 				.footer-grid {
-					grid-template-columns: 1fr;
+					gap: var(--spacing-6);
+					margin-bottom: var(--spacing-6);
 				}
 
 				.footer-brand {
-					grid-column: span 1;
+					text-align: center;
+					padding-bottom: var(--spacing-5);
+					border-bottom: 1px solid var(--color-border-subtle);
+				}
+
+				.footer-tagline {
+					margin-inline: auto;
+					max-width: 22rem;
+				}
+
+				.footer-cols {
+					grid-template-columns: 1fr 1fr;
+					gap: var(--spacing-5) var(--spacing-4);
+				}
+
+				.footer-heading {
+					margin-bottom: var(--spacing-3);
+				}
+
+				.footer-links {
+					gap: 0.35rem;
 				}
 
 				.footer-bottom {
 					flex-direction: column;
-					gap: var(--spacing-4);
-					text-align: center;
-				}
-
-				.footer-controls {
-					flex-wrap: wrap;
 					justify-content: center;
+					align-items: center;
+					gap: var(--spacing-3);
+					padding-top: var(--spacing-5);
+					text-align: center;
 				}
 			}
 		</style>
@@ -994,6 +1436,31 @@ const isLoggedIn = !!Astro.locals.user;
 					}
 				}
 			});
+
+			// Mobile full-screen menu: close on link, Escape; sync toggle label
+			const navMenu = document.querySelector(".nav-menu");
+			if (navMenu instanceof HTMLDetailsElement) {
+				const toggle = navMenu.querySelector(".nav-menu-toggle");
+				const syncToggle = () => {
+					if (!(toggle instanceof HTMLElement)) return;
+					toggle.setAttribute(
+						"aria-label",
+						navMenu.open ? "Close menu" : "Open menu",
+					);
+				};
+				syncToggle();
+				navMenu.addEventListener("toggle", syncToggle);
+				navMenu.querySelectorAll("a").forEach((link) => {
+					link.addEventListener("click", () => {
+						navMenu.open = false;
+					});
+				});
+				document.addEventListener("keydown", (e) => {
+					if (e.key === "Escape" && navMenu.open) {
+						navMenu.open = false;
+					}
+				});
+			}
 		</script>
 		<EmDashBodyEnd page={pageCtx} />
 	</body>

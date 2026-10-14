@@ -58,10 +58,10 @@ export default function LandingPage({
 								"A working shop and journal built on live product data—browse, bag it, and read along."}
 						</p>
 						<div className="landing-cta">
-							<a className="landing-cta-primary" href="/store">
+							<a className="store-btn" href="/store">
 								Shop the store
 							</a>
-							<a className="landing-cta-secondary" href="/posts">
+							<a className="store-btn-ghost" href="/posts">
 								Read the blog
 							</a>
 						</div>

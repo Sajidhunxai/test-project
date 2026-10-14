@@ -1,4 +1,4 @@
-/* Landing uses site theme tokens (light / dark / system) */
+/* Landing chrome follows the same theme tokens as the rest of the site */
 body:has(.landing) {
 	background: var(--color-bg);
 }
@@ -8,54 +8,11 @@ body:has(.landing) .site-footer {
 	background: color-mix(in srgb, var(--color-bg) 92%, transparent);
 	backdrop-filter: blur(10px);
 	border-color: var(--color-border);
-	color: var(--color-text);
-}
-
-body:has(.landing) .site-title,
-body:has(.landing) .nav-links a,
-body:has(.landing) .nav-admin,
-body:has(.landing) .footer-logo,
-body:has(.landing) .footer-links a,
-body:has(.landing) .footer-heading,
-body:has(.landing) .footer-tagline,
-body:has(.landing) .footer-copyright,
-body:has(.landing) .cart-badge,
-body:has(.landing) .auth-badge {
-	color: var(--color-text);
-	font-family: var(--font-landing-display), var(--font-body), sans-serif;
 }
 
 body:has(.landing) .nav-links a:hover,
 body:has(.landing) .site-title:hover,
 body:has(.landing) .footer-links a:hover,
 body:has(.landing) .auth-badge button {
-	color: light-dark(#0f766e, #5eead4);
-}
-
-body:has(.landing) .site-search {
-	--emdash-search-bg: var(--color-bg);
-	--emdash-search-text: var(--color-text);
-	--emdash-search-muted: var(--color-muted);
-	--emdash-search-border: var(--color-border);
-	--emdash-search-hover: var(--color-surface);
-	--emdash-search-highlight: var(--color-text);
-}
-
-body:has(.landing) .site-search-input,
-body:has(.landing) .emdash-live-search-input {
-	background: var(--color-bg) !important;
-	color: var(--color-text) !important;
-	border: 1px solid var(--color-border) !important;
-}
-
-body:has(.landing) .site-search-input::placeholder,
-body:has(.landing) .emdash-live-search-input::placeholder {
-	color: var(--color-muted) !important;
-}
-
-body:has(.landing) .site-search-results,
-body:has(.landing) .emdash-live-search-results {
-	background: var(--color-bg) !important;
-	border-color: var(--color-border) !important;
-	color: var(--color-text) !important;
+	color: var(--color-brand);
 }
